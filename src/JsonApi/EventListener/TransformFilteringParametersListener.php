@@ -24,6 +24,13 @@ use Symfony\Component\HttpKernel\Event\RequestEvent;
  */
 final class TransformFilteringParametersListener
 {
+    private $orderParameterName;
+
+    public function __construct(string $orderParameterName = 'order')
+    {
+        $this->orderParameterName = $orderParameterName;
+    }
+    
     public function onKernelRequest(RequestEvent $event): void
     {
         $request = $event->getRequest();
@@ -35,6 +42,13 @@ final class TransformFilteringParametersListener
             return;
         }
         $filters = $request->attributes->get('_api_filters', []);
+        
+        if ($orderParametersArray = $request->query->get($this->orderParameterName)) {
+            foreach ($orderParametersArray as $name => $order) {
+                $filters[$this->orderParameterName][$name] = $order;
+            }
+        }
+        
         $request->attributes->set('_api_filters', array_merge($filterParameter, $filters));
     }
 }
